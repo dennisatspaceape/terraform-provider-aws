@@ -336,12 +336,11 @@ func resourceAwsElasticSearchDomainCreate(d *schema.ResourceData, meta interface
 		}
 
 		options := v.([]interface{})
-		if options[0] == nil {
+		if len(options) < 1 || options[0] == nil {
 			return fmt.Errorf("At least one field is expected inside vpc_options")
 		}
 
-		s := options[0].(map[string]interface{})
-		input.VPCOptions = expandESVPCOptions(s)
+		input.VPCOptions = expandESVPCOptions(options)
 	}
 
 	if v, ok := d.GetOk("log_publishing_options"); ok {
@@ -595,8 +594,7 @@ func resourceAwsElasticSearchDomainUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("vpc_options") {
 		options := d.Get("vpc_options").([]interface{})
-		s := options[0].(map[string]interface{})
-		input.VPCOptions = expandESVPCOptions(s)
+		input.VPCOptions = expandESVPCOptions(options)
 	}
 
 	if d.HasChange("log_publishing_options") {

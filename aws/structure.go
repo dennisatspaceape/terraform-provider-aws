@@ -1064,7 +1064,13 @@ func flattenESVPCDerivedInfo(o *elasticsearch.VPCDerivedInfo) []map[string]inter
 	return []map[string]interface{}{m}
 }
 
-func expandESVPCOptions(m map[string]interface{}) *elasticsearch.VPCOptions {
+func expandESVPCOptions(opts []interface{}) *elasticsearch.VPCOptions {
+	if len(opts) < 1 {
+		return nil
+	}
+
+	m := opts[0].(map[string]interface{})
+
 	options := elasticsearch.VPCOptions{}
 
 	if v, ok := m["security_group_ids"]; ok {
