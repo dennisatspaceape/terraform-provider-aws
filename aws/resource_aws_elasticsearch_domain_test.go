@@ -179,6 +179,9 @@ func TestAccAWSElasticSearchDomain_vpc_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain),
 					testAccCheckESNumberOfSecurityGroups(1, &domain),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.#", "1"),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.0.security_group_ids.#", "1"),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.0.subnet_ids.#", "2"),
 				),
 			},
 			{
@@ -186,6 +189,17 @@ func TestAccAWSElasticSearchDomain_vpc_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain),
 					testAccCheckESNumberOfSecurityGroups(2, &domain),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.#", "1"),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.0.security_group_ids.#", "2"),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.0.subnet_ids.#", "2"),
+				),
+			},
+			{
+				Config: testAccESDomainConfig_vpc_empty_block(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain),
+					testAccCheckESNumberOfSecurityGroups(0, &domain),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "vpc_options.#", "0"),
 				),
 			},
 		},
@@ -669,6 +683,26 @@ resource "aws_elasticsearch_domain" "example" {
   }
 }
 `, randInt, sg_ids, subnet_string, subnet_string)
+}
+
+func testAccESDomainConfig_vpc_empty_block(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_elasticsearch_domain" "example" {
+  domain_name = "tf-test-%d"
+
+  ebs_options {
+    ebs_enabled = false
+  }
+
+  cluster_config {
+    instance_count = 2
+    instance_type = "m3.medium.elasticsearch"
+  }
+
+  vpc_options {
+  }
+}
+`, randInt)
 }
 
 func testAccESDomainConfig_internetToVpcEndpoint(randInt int) string {
